@@ -1,6 +1,7 @@
  <div class="forms">
 
-                <div class="sign__blog">
+            <div class="sign__blog">
+
 
                     <form action="/register" method="POST" class="signin">
 
@@ -10,6 +11,12 @@
 
                         <h2 class="title">Register</h2>
                         
+                        <div class="alert alert-success" role="alert">
+  	                        <h3 style="color:lightgreen">{{success}} </h3>
+		                </div>
+		                <div class="alert alert-danger" role="alert">
+			                <h3 style="color:Tomato">{{error}}</h3>
+                        </div>
                         <div class="input__blog">
                             <i class="fas fa-user"></i>
                             <input type="text" placeholder="Full Name" name="fullname" value="" required maxlength="30"/>

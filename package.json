@@ -5,12 +5,16 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"node src/app.js",
     "dev": "nodemon src/app.js -e js,hbs"
   },
   "author": "Ziacodes",
   "license": "ISC",
   "dependencies": {
+    "connect-flash": "^0.1.1",
     "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "express-validator": "^6.14.0",
     "hbs": "^4.2.0",
     "mongoose": "^6.1.1",
     "nodemon": "^2.0.15"

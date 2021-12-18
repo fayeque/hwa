@@ -2,7 +2,8 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const hbs = require("hbs");
-
+const {check,validationResult}=require('express-validator/check');
+var flash=require("connect-flash");
 require("./db/config");
 const Register = require("./models/register");
 const Projectsubmission = require("./models/submit");
@@ -16,12 +17,25 @@ const partials_path = path.join(__dirname, "../template/partials");
 
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
+app.use(require("express-session")({
+    secret:"my name is khan",
+    resave:false,
+    saveUninitialized:false,
+    cookie:{maxAge:60*60*1000}
+    }));
 
+app.use(flash());
 app.use(express.static(static_path))
 app.set("view engine", "hbs");
 
 app.set("views",template_path);
 hbs.registerPartials(partials_path);
+
+app.use(function(req, res, next){
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
+    next();
+ });
 
 //home page
 app.get("/", (req, res) =>{
@@ -39,8 +53,16 @@ app.get("/successful",(req, res) =>{
 })
 
 //creating new user data
-app.post("/register", async(req,res) =>{
+app.post("/register",[
+    check('email',"Please include a valid email").isEmail(),
+],
+async(req,res) =>{
     try {
+        const errors=validationResult(req);
+        if(!errors.isEmpty()){
+            req.flash("error","Email must be valid");
+            res.redirect("/register");
+        }
        const registerParticiepent = new Register({
         fullname : req.body.fullname,
         email : req.body.email,
@@ -51,10 +73,13 @@ app.post("/register", async(req,res) =>{
        })
 
     const registered = await registerParticiepent.save();
+    console.log(registered);
     res.status(201).render("successful");
 
     } catch (error) {
-        res.status(400).send(error);
+        req.flash("error","Records already registered or missing details");
+        res.redirect("/register");
+        // res.status(400).send(error);
     }
 })
 
@@ -67,14 +92,13 @@ app.post("/submit", async (req,res) =>{
             name : req.body.nameoftheteam,
             email : req.body.email,
             link : req.body.projectlink
-            
            })
     
         const submitted = await submittedproject.save();
         res.status(201).render("s-submit");
 
     } catch (error) {
-        res.status(400).send(error);
+        res.redirect("/submit");
     }
 })
 
