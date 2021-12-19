@@ -2,12 +2,16 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const hbs = require("hbs");
+const util=require('util');
+
+const urlExists=util.promisify(require('url-exists'));
 const {check,validationResult}=require('express-validator/check');
 var flash=require("connect-flash");
 require("./db/config");
 const Register = require("./models/register");
 const Projectsubmission = require("./models/submit");
 const async = require("hbs/lib/async");
+const { resolve } = require("path");
 
 const port = process.env.PORT || 3000
 
@@ -88,6 +92,40 @@ async(req,res) =>{
 //for project submission
 app.post("/submit", async (req,res) =>{
     try {
+        const register=await Register.findOne({teamname:req.body.nameoftheteam});
+        if(!register){
+            req.flash("error","Team is not registered");
+            return res.redirect("/register");
+        }
+        // var p=new Promise((resolve,reject) => {
+        //     urlExists(req.body.projectlink,(err,exists) => {
+        //         if(err){
+        //             reject(err);
+        //         }else{
+        //             resolve(exists);
+        //         }
+        //     });
+        // });
+
+        // p.then((e) => {
+        //     console.log(e);
+        //     if(!e){
+        //         req.flash("error","Project link is invalid");
+        //         res.redirect("/register");
+        //     }
+        // }).catch((err) => {
+        //     console.log(err);
+        //     res.redirect("/register","Something went wrong");
+        // });
+
+
+        let isExists=await urlExists(req.body.projectlink);
+        console.log(isExists);
+        if(!isExists){
+            req.flash("error","Project link is invalid");
+            return res.redirect("/register");
+        }
+        
         const submittedproject = new Projectsubmission({
             name : req.body.nameoftheteam,
             email : req.body.email,
@@ -95,10 +133,13 @@ app.post("/submit", async (req,res) =>{
            })
     
         const submitted = await submittedproject.save();
-        res.status(201).render("s-submit");
-
+        console.log(submittedproject);
+        req.flash("success","Submission successful");
+        res.redirect("/register");
     } catch (error) {
-        res.redirect("/submit");
+        console.log(error);
+        req.flash("error","Something went wrong");
+        res.redirect("/register");
     }
 })
 
